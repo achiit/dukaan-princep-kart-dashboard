@@ -1,0 +1,950 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Princep Kart Dashboard</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Cinzel:wght@600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: seller-panel shell. Fixed navy sidebar with the Princep Kart logo top-left on desktop; on phones the logo sits in the top bar and navigation moves to a bottom bar. Work area is a card grid. */
+:root{
+  --font-display:"Manrope",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --font-body:"Manrope",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --font-brand:"Cinzel","Trajan Pro",Georgia,serif;
+  --font-mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+  --bg:#F3F5F9;--surface:#FFFFFF;--surface-2:#EBEFF6;--ink:#142036;--ink-2:#56627A;--line:#DCE2EC;
+  --accent:#1F4FD1;--accent-ink:#FFFFFF;--gold:#E3A622;
+  --side:#0E1D3A;--side-ink:#B9C6E2;--side-active:#1B2F57;
+  --good:#11803E;--warn:#9A5800;--bad:#C0281C;--info:#2A5BA8;
+  --good-bg:#DEF2E5;--warn-bg:#FBEBD0;--bad-bg:#FBE1DE;--info-bg:#E1EAF8;--neutral-bg:#E9EDF4;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0A111F;--surface:#111B30;--surface-2:#17233D;--ink:#E7EDF8;--ink-2:#97A6C3;--line:#22314F;
+  --accent:#6C93FF;--accent-ink:#0A1530;--gold:#F0BC45;
+  --side:#070D1A;--side-ink:#AEBBD6;--side-active:#14213C;
+  --good:#4CC983;--warn:#E5A64E;--bad:#F28279;--info:#8DB4F0;
+  --good-bg:#12301F;--warn-bg:#352711;--bad-bg:#3A1B1C;--info-bg:#15264A;--neutral-bg:#1B2842;color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0A111F;--surface:#111B30;--surface-2:#17233D;--ink:#E7EDF8;--ink-2:#97A6C3;--line:#22314F;
+  --accent:#6C93FF;--accent-ink:#0A1530;--gold:#F0BC45;
+  --side:#070D1A;--side-ink:#AEBBD6;--side-active:#14213C;
+  --good:#4CC983;--warn:#E5A64E;--bad:#F28279;--info:#8DB4F0;
+  --good-bg:#12301F;--warn-bg:#352711;--bad-bg:#3A1B1C;--info-bg:#15264A;--neutral-bg:#1B2842;color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font:14.5px/1.5 var(--font-body);-webkit-text-size-adjust:100%}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:60;background:var(--bg)}
+.in{max-width:1120px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.mono{font-family:var(--font-mono);font-size:12.5px}
+button{font:inherit;color:inherit}
+.num{font-variant-numeric:tabular-nums}
+/* logo + sidebar */
+.logo{display:flex;align-items:center;gap:11px}
+.logo svg{width:42px;height:42px;flex:none}
+.wm b{display:block;font:700 15px/1.1 var(--font-brand);letter-spacing:.09em;white-space:nowrap}
+.wm span{display:block;font:500 11.5px var(--font-body);margin-top:3px;letter-spacing:.02em;color:var(--ink-2)}
+.sidebar{display:none}
+.mlogo .wm b{color:var(--ink)}
+.sidebar .wm b{color:#fff}.sidebar .wm span{color:var(--side-ink)}
+.nav{display:grid;gap:3px;margin-top:26px}
+.nav button{display:flex;align-items:center;gap:12px;width:100%;padding:10px 12px;border:0;border-radius:8px;background:none;color:var(--side-ink);font:600 14px var(--font-body);cursor:pointer;text-align:left;position:relative}
+.nav button:hover{background:var(--side-active)}
+.nav svg{width:19px;height:19px;flex:none}
+.nav button[aria-selected=true]{background:var(--side-active);color:#fff}
+.nav button[aria-selected=true]::before{content:"";position:absolute;left:-8px;top:9px;bottom:9px;width:3px;border-radius:0 3px 3px 0;background:var(--gold)}
+.side-foot{margin-top:auto;padding-top:14px;border-top:1px solid rgba(255,255,255,.12);font-size:12px;color:var(--side-ink)}
+.side-foot b{display:block;color:#fff;font-weight:700;margin-bottom:2px}
+/* top bar */
+.topbar{position:sticky;top:env(safe-area-inset-top,0px);z-index:30;background:var(--bg);border-bottom:1px solid var(--line)}
+.tb{display:flex;flex-wrap:wrap;align-items:center;gap:10px;padding-block:10px}
+.mlogo{order:1;flex:1;min-width:0}
+.newbtn{order:2}
+.scan{order:3;flex:1 1 100%;display:flex;gap:8px}
+.scan input[type=text]{flex:1;min-width:0}
+.scan select{width:auto;max-width:150px}
+.banner{background:var(--warn-bg);color:var(--warn);padding:8px 16px;font-size:13px;text-align:center}
+/* bottom nav (phones) */
+.bnav{position:fixed;left:0;right:0;bottom:0;z-index:35;display:flex;background:var(--surface);border-top:1px solid var(--line);padding:6px max(6px,env(safe-area-inset-right,0px)) calc(6px + env(safe-area-inset-bottom,0px)) max(6px,env(safe-area-inset-left,0px))}
+.bnav button{flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;gap:3px;border:0;background:none;color:var(--ink-2);font:600 10.5px var(--font-body);padding:6px 2px;cursor:pointer}
+.bnav svg{width:21px;height:21px}
+.bnav button[aria-selected=true]{color:var(--accent)}
+main#view{padding-block:20px 104px}
+@media (min-width:900px){
+  .sidebar{display:flex;flex-direction:column;position:fixed;inset:0 auto 0 0;width:248px;background:var(--side);padding:22px 16px 18px max(18px,env(safe-area-inset-left,0px));z-index:40}
+  .main{margin-left:248px}
+  .bnav,.mlogo{display:none}
+  .scan{order:1;flex:1;max-width:640px}
+  .newbtn{order:2;margin-left:auto}
+  main#view{padding-block:26px 64px}
+}
+/* controls */
+input,select,textarea{font:inherit;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:9px 11px;width:100%;min-width:0}
+input:focus-visible,select:focus-visible,textarea:focus-visible,button:focus-visible,.btn:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;appearance:none;cursor:pointer;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:8px;padding:9px 14px;font:600 14px var(--font-body);white-space:nowrap}
+.btn:hover{border-color:var(--accent)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.btn.danger{color:var(--bad);border-color:var(--bad)}
+.btn.sm{padding:6px 10px;font-size:13px}
+.btn.icon{padding:0 12px}
+.btn svg{width:18px;height:18px}
+.good{color:var(--good)}.bad{color:var(--bad)}.warn{color:var(--warn)}
+.eyebrow{font:700 11.5px var(--font-body);text-transform:uppercase;letter-spacing:.07em;color:var(--ink-2)}
+.note{font-size:12.5px;color:var(--ink-2);margin-top:12px}
+.empty{color:var(--ink-2);padding:26px 10px;text-align:center;border:1px dashed var(--line);border-radius:10px}
+/* page header */
+.ph{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:18px}
+.ph h1{font:800 26px/1.15 var(--font-display);letter-spacing:-.02em;margin:0}
+.ph p{margin:4px 0 0;color:var(--ink-2)}
+.ph-r{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.ph-r select{width:auto}
+.ph-r input{width:min(260px,100%)}
+/* cards */
+.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px;box-shadow:0 1px 2px rgba(16,32,64,.05);min-width:0}
+.card-h{display:flex;justify-content:space-between;align-items:baseline;gap:8px;margin-bottom:12px}
+.card-h h2{font:700 15px/1.2 var(--font-display);margin:0}
+.card-h small{color:var(--ink-2);font-size:12.5px}
+.cols2{display:grid;grid-template-columns:1fr;gap:16px;margin-top:16px}
+.cols2>*{min-width:0}
+@media (min-width:900px){.cols2{grid-template-columns:1fr 1fr}}
+.hero{background:var(--side);color:#fff;border-radius:14px;padding:20px 22px}
+.hero .eyebrow{color:var(--side-ink)}
+.hero .bar-g{width:44px;height:3px;background:var(--gold);border-radius:2px;margin-bottom:12px}
+.hero-n{font:800 clamp(34px,8vw,48px)/1.05 var(--font-display);letter-spacing:-.02em;margin:6px 0 2px}
+.hero-n.bad{color:#FF9B93}
+.hero-stats{display:flex;gap:30px;flex-wrap:wrap;margin-top:14px}
+.hs b{display:block;font:700 17px var(--font-display)}
+.hs span{font-size:12px;color:var(--side-ink)}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:14px;margin-top:16px}
+.kpi{display:flex;gap:12px;align-items:flex-start;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px;box-shadow:0 1px 2px rgba(16,32,64,.05)}
+.kpi .ic{flex:none;width:38px;height:38px;border-radius:10px;display:grid;place-items:center;background:var(--info-bg);color:var(--info)}
+.kpi .ic.g{background:var(--good-bg);color:var(--good)}.kpi .ic.w{background:var(--warn-bg);color:var(--warn)}.kpi .ic.r{background:var(--bad-bg);color:var(--bad)}
+.kpi .ic svg{width:20px;height:20px}
+.kpi b{display:block;font:800 22px/1.2 var(--font-display);margin-top:2px}
+.kpi .s{font-size:12.5px;color:var(--ink-2)}
+.att{list-style:none;margin:0;padding:0}
+.att li{display:flex;align-items:center;gap:12px;padding:10px 0;border-top:1px solid var(--line)}
+.att li:first-child{border-top:0;padding-top:0}
+.att .ct{min-width:34px;height:34px;border-radius:8px;display:grid;place-items:center;font:800 15px var(--font-display)}
+.att .tx{flex:1;min-width:0}.att .tx small{display:block;color:var(--ink-2);font-size:12.5px}
+.flow{display:grid;gap:12px}
+.flow .fr{display:grid;grid-template-columns:1fr auto;gap:3px 10px}
+.bar{grid-column:1/-1;height:7px;border-radius:4px;background:var(--surface-2);overflow:hidden}
+.bar i{display:block;height:100%;background:var(--accent)}.bar i.o{background:var(--gold)}
+svg.chart text{fill:var(--ink-2);font:11px var(--font-body)}
+svg.chart .pos{fill:var(--accent)}svg.chart .neg{fill:var(--bad)}
+svg.chart .grid{stroke:var(--line);stroke-width:1}svg.chart .zero{stroke:var(--ink-2);stroke-width:1}
+svg.chart .v{fill:var(--ink);font-weight:700}
+.chartbox{overflow-x:auto}
+.tbl{overflow-x:auto}
+.tr{display:grid;grid-template-columns:minmax(120px,2fr) repeat(3,minmax(64px,1fr));gap:8px;padding:9px 0;border-top:1px solid var(--line);align-items:center}
+.tr.h{font:700 11.5px var(--font-body);text-transform:uppercase;letter-spacing:.05em;color:var(--ink-2);border-top:0;padding-top:0}
+.tr>div:not(:first-child){text-align:right}
+.tr small{display:block;color:var(--ink-2)}
+/* pills, chips */
+.pill{display:inline-block;font:700 11.5px/1 var(--font-body);padding:5px 9px;border-radius:99px;background:var(--neutral-bg);color:var(--ink-2);white-space:nowrap}
+.p-good{background:var(--good-bg);color:var(--good)}.p-warn{background:var(--warn-bg);color:var(--warn)}
+.p-bad{background:var(--bad-bg);color:var(--bad)}.p-info{background:var(--info-bg);color:var(--info)}
+.chips{display:flex;gap:6px;overflow-x:auto;padding-bottom:8px;margin-bottom:12px;scrollbar-width:none}
+.chips::-webkit-scrollbar{display:none}
+.chip{appearance:none;cursor:pointer;border:1px solid var(--line);background:var(--surface);color:var(--ink-2);border-radius:99px;padding:6px 13px;font:600 13px var(--font-body);white-space:nowrap}
+.chip[aria-pressed=true]{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+/* orders table */
+.otable{display:grid;gap:8px}
+.oh{display:none}
+.orow,.oh{grid-template-columns:1fr 1fr auto;grid-template-areas:"prod prod status" "id id val" "date plat profit" "next next next"}
+.orow{display:grid;gap:4px 12px;align-items:center;text-align:left;width:100%;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px;cursor:pointer;color:inherit}
+.orow>*,.oh>*{min-width:0}
+.c-prod{grid-area:prod;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.c-id{grid-area:id;color:var(--ink-2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.c-date{grid-area:date;color:var(--ink-2)}
+.c-plat{grid-area:plat;color:var(--ink-2)}
+.c-status{grid-area:status;justify-self:end}
+.c-val{grid-area:val;justify-self:end;text-align:right;font-weight:700}
+.c-profit{grid-area:profit;justify-self:end;text-align:right;font-weight:600}
+.c-next{grid-area:next;font-size:12.5px;color:var(--ink-2);border-top:1px solid var(--line);padding-top:6px;margin-top:2px}
+.orow:hover{border-color:var(--accent)}
+.c-next.bad{color:var(--bad)}.c-next.warn{color:var(--warn)}.c-next.good{color:var(--good)}
+@media (min-width:900px){
+  .otable{gap:0;background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+  .oh,.orow{grid-template-columns:minmax(140px,2.2fr) minmax(130px,1.7fr) 70px 80px 92px 84px 92px minmax(120px,1.6fr);grid-template-areas:"prod id date plat status val profit next";gap:12px;padding:11px 16px}
+  .oh{display:grid;background:var(--surface-2);font:700 11.5px var(--font-body);text-transform:uppercase;letter-spacing:.05em;color:var(--ink-2)}
+  .orow{border:0;border-bottom:1px solid var(--line);border-radius:0;background:var(--surface)}
+  .orow:last-child{border-bottom:0}
+  .orow:hover{background:var(--surface-2)}
+  .c-status{justify-self:start}
+  .c-next{border:0;padding:0;margin:0}
+  .c-profit small{display:none}
+}
+/* generic list rows (payments, expenses, stock) */
+.row{display:grid;grid-template-columns:1fr auto;gap:3px 12px;width:100%;text-align:left;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:11px 13px;margin-bottom:8px;cursor:pointer}
+.row:hover{border-color:var(--accent)}
+.row .t{font-weight:700;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.row .sub{color:var(--ink-2);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.row .side{text-align:right;display:flex;flex-direction:column;align-items:flex-end;gap:3px}
+.row .foot{grid-column:1/-1;display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;font-size:13px;color:var(--ink-2);border-top:1px solid var(--line);padding-top:6px;margin-top:4px}
+.row .amt{font:700 15px var(--font-body)}
+.toolbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:14px}
+.toolbar select{width:auto}
+.sec-h{font:700 15px var(--font-display);margin:22px 0 10px;display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.sec-h small{font:500 12.5px var(--font-body);color:var(--ink-2)}
+/* dialog */
+dialog{border:0;padding:0;background:transparent;color:inherit;max-width:none;max-height:none;width:100%;height:100%;margin:0}
+dialog[open]{display:flex;align-items:flex-end;justify-content:center}
+dialog::backdrop{background:rgba(6,12,24,.6)}
+.sheet{background:var(--surface);color:var(--ink);width:min(720px,100%);max-height:94%;overflow-y:auto;border-radius:16px 16px 0 0;padding:18px max(16px,env(safe-area-inset-left,0px)) calc(20px + env(safe-area-inset-bottom,0px))}
+@media (min-width:760px){dialog[open]{align-items:center}.sheet{border-radius:16px;max-height:90%}}
+.sh-h{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:12px}
+.sh-h h2{font:800 19px/1.25 var(--font-display);margin:0;min-width:0}
+.sh-h .mono{display:block;color:var(--ink-2);margin-top:2px;word-break:break-all}
+.f{display:grid;gap:4px;margin-bottom:12px;min-width:0}
+.f>label,.lbl{font:700 11.5px var(--font-body);color:var(--ink-2);text-transform:uppercase;letter-spacing:.05em}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:0 12px}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:0 10px}
+.hint{font-size:12.5px;color:var(--ink-2)}
+.err{color:var(--bad);font-size:13.5px;min-height:1.2em;margin:4px 0}
+.acts{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+.acts .sp{flex:1}
+.prev{background:var(--surface-2);border-radius:10px;padding:10px 12px;margin:4px 0 14px}
+.kv{display:grid;grid-template-columns:1fr auto;gap:4px 12px;margin:0}
+.kv dt{color:var(--ink-2)}.kv dd{margin:0;text-align:right;font-variant-numeric:tabular-nums}
+.kv .tot{font-weight:800;border-top:1px solid var(--line);padding-top:4px;margin-top:2px}
+.tl{list-style:none;margin:0 0 6px;padding:0}
+.tl li{display:flex;gap:12px;padding:5px 0 9px;position:relative}
+.tl li:not(:last-child)::before{content:"";position:absolute;left:5px;top:20px;bottom:-4px;width:2px;background:var(--line)}
+.tl .dot{flex:none;width:12px;height:12px;border-radius:50%;border:2px solid var(--line);margin-top:5px;background:var(--surface)}
+.tl li.done .dot{background:var(--good);border-color:var(--good)}
+.tl li.late .dot{border-color:var(--bad)}
+.tl b{display:block;line-height:1.3}.tl span{color:var(--ink-2);font-size:13.5px}
+.qrbox{display:flex;gap:14px;align-items:center;flex-wrap:wrap;border:1px solid var(--line);border-radius:10px;padding:12px}
+.qrbox img{width:164px;height:164px;image-rendering:pixelated;background:#fff;padding:6px;border-radius:8px;border:1px solid var(--line)}
+.qrbox .qt{flex:1;min-width:180px}
+.sub-h{font:800 14px var(--font-display);margin:16px 0 6px}
+.alloc{display:grid;grid-template-columns:1.2fr 1fr 1.2fr auto;gap:6px;margin-bottom:6px}
+.stl{display:flex;gap:6px;flex-wrap:wrap}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(80px + env(safe-area-inset-bottom,0px));z-index:100;background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:8px;max-width:calc(100% - 32px);font-size:14px}
+@media (min-width:900px){.toast{bottom:calc(24px + env(safe-area-inset-bottom,0px))}}
+.ro .wr{display:none!important}
+@media (max-width:480px){.g3{grid-template-columns:1fr 1fr}.alloc{grid-template-columns:1fr 1fr}}
+</style>
+<div class="banner" id="demoBar" hidden>This is sample data and will not be saved. Open the page in claude.ai while signed in to keep your own data.</div>
+<aside class="sidebar" aria-label="Main navigation">
+  <div class="logo" aria-label="Princep Kart">
+    <svg viewBox="0 0 48 48" aria-hidden="true"><defs><linearGradient id="lgA" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#2F55C9"/><stop offset="1" stop-color="#12234A"/></linearGradient></defs><rect width="48" height="48" rx="12" fill="url(#lgA)"/><path d="M14 19.5 13 10.5l6 4 5-6.5 5 6.5 6-4-1 9z" fill="#F2B632"/><circle cx="13" cy="9.5" r="1.4" fill="#F2B632"/><circle cx="24" cy="7.2" r="1.4" fill="#F2B632"/><circle cx="35" cy="9.5" r="1.4" fill="#F2B632"/><path d="M11 25h4l3 11h12.5l3-8.5H15.7" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/><circle cx="20.5" cy="40" r="2" fill="#fff"/><circle cx="29" cy="40" r="2" fill="#fff"/></svg>
+    <div class="wm"><b>PRINCEP KART</b><span>Seller Dashboard</span></div>
+  </div>
+  <nav class="nav" id="nav" aria-label="Sections"></nav>
+  <div class="side-foot"><b>Princep Kart</b><span id="sideFoot">Seller books</span></div>
+</aside>
+<div class="main">
+<header class="topbar"><div class="in tb">
+  <div class="logo mlogo" aria-label="Princep Kart">
+    <svg viewBox="0 0 48 48" aria-hidden="true"><defs><linearGradient id="lgB" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#2F55C9"/><stop offset="1" stop-color="#12234A"/></linearGradient></defs><rect width="48" height="48" rx="12" fill="url(#lgB)"/><path d="M14 19.5 13 10.5l6 4 5-6.5 5 6.5 6-4-1 9z" fill="#F2B632"/><circle cx="13" cy="9.5" r="1.4" fill="#F2B632"/><circle cx="24" cy="7.2" r="1.4" fill="#F2B632"/><circle cx="35" cy="9.5" r="1.4" fill="#F2B632"/><path d="M11 25h4l3 11h12.5l3-8.5H15.7" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/><circle cx="20.5" cy="40" r="2" fill="#fff"/><circle cx="29" cy="40" r="2" fill="#fff"/></svg>
+    <div class="wm"><b>PRINCEP KART</b><span>Seller Dashboard</span></div>
+  </div>
+  <button class="btn primary wr newbtn" data-act="new-order" type="button">+ New order</button>
+  <div class="scan">
+    <input id="scanIn" type="text" autocomplete="off" placeholder="Scan or type Order ID / AWB, then press Enter" aria-label="Scan Order ID or AWB">
+    <label class="btn icon" for="scanFile" title="Take a photo of the QR" aria-label="Take a photo of the QR"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8V5a2 2 0 0 1 2-2h3M16 3h3a2 2 0 0 1 2 2v3M21 16v3a2 2 0 0 1-2 2h-3M8 21H5a2 2 0 0 1-2-2v-3"/><rect x="8" y="8" width="3" height="3"/><rect x="13" y="13" width="3" height="3"/><path d="M13 8h3M8 13h3"/></svg></label>
+    <input id="scanFile" type="file" accept="image/*" capture="environment" hidden>
+    <select id="scanMode" aria-label="What happens on scan"><option value="open">Just open</option><option value="ship">Mark Shipped</option><option value="deliver">Mark Delivered</option><option value="ret">Mark Returned</option></select>
+  </div>
+</div></header>
+<main class="in" id="view"></main>
+</div>
+<nav class="bnav" id="bnav" aria-label="Sections"></nav>
+<dialog id="dlg"><div class="sheet" id="sheet"></div></dialog>
+<div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jsQR/1.4.0/jsQR.min.js"></script>
+<script>
+(function(){'use strict';
+/* <calc> */
+const num=v=>{const n=typeof v==='number'?v:parseFloat(v);return isFinite(n)?n:0;};
+const pick=(v,d)=>(v===undefined||v===null||v==='')?d:num(v);
+const pd=s=>{const m=/^(\d{4})-(\d{2})-(\d{2})/.exec(s||'');return m?new Date(+m[1],+m[2]-1,+m[3]):null;};
+const fd=d=>d?d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'):'';
+const addDays=(d,n)=>new Date(d.getFullYear(),d.getMonth(),d.getDate()+n);
+const dayDiff=(a,b)=>Math.round((b-a)/86400000);
+const full=s=>String(s||'').toUpperCase().replace(/\(.*?\)/g,'').replace(/[^A-Z0-9]/g,'');
+const core=s=>String(s||'').toUpperCase().replace(/\(.*?\)/g,'').replace(/_\d*\s*$/,'').replace(/[^A-Z0-9]/g,'');
+const DEFAULT_PLATFORMS={Meesho:{ship:2,deliver:6,pay:8},Flipkart:{ship:2,deliver:5,pay:10},Amazon:{ship:2,deliver:5,pay:7},Other:{ship:3,deliver:5,pay:7}};
+function buildLinks(orders,payments){
+  const byFull=new Map(),byCore=new Map(),links=new Map(),linked=new Set(),unmatched=[];
+  orders.forEach(o=>{const f=full(o.orderId),c=core(o.orderId);if(f&&!byFull.has(f))byFull.set(f,o);if(c&&!byCore.has(c))byCore.set(c,o);});
+  payments.forEach(p=>{
+    const o=byFull.get(full(p.orderId))||byCore.get(core(p.orderId));
+    if(o){if(!links.has(o.id))links.set(o.id,[]);links.get(o.id).push(p);linked.add(p.id);}else unmatched.push(p);
+  });
+  return {links,linked,unmatched};
+}
+function calcOrder(o,ctx){
+  const p=ctx.prod.get(o.sku)||null;
+  const qty=num(o.qty);
+  const unit=num(o.price)||(p?num(p.price):0);
+  const value=qty*unit;
+  const gstPct=p?num(p.gst):0,feePct=p?num(p.feePct):0;
+  const gst=gstPct?value-value/(1+gstPct/100):0;
+  const fees=value*feePct/100;
+  const ship=p?num(p.shipCharge):0;
+  const cost=p?qty*num(p.cost):0;
+  const st=o.status||'New';
+  let profit;
+  if(st==='Returned')profit=-(fees+ship);else if(st==='Cancelled')profit=0;else profit=value-gst-fees-ship-cost;
+  const delivered=st==='Delivered';
+  const payout=delivered?value-fees-ship:0;
+  const pays=ctx.links.get(o.id)||[];
+  const settled=pays.length?pays.reduce((s,x)=>s+num(x.amount)+num(x.deduction),0):num(o.receivedManual);
+  const pending=delivered?Math.max(payout-settled,0):0;
+  let payStatus='';
+  if(delivered&&payout>0)payStatus=settled===0?'Pending':(settled<payout-1?'Short':'Received');
+  const cfg=ctx.cfg(o.platform);
+  const od=pd(o.date)||ctx.today,sd=pd(o.shippedDate),dd=pd(o.deliveredDate);
+  const expShip=sd||addDays(od,cfg.ship);
+  const expDeliver=dd||addDays(sd||expShip,cfg.deliver);
+  const expPay=addDays(dd||expDeliver,cfg.pay);
+  let flag='',late=0;
+  if((st==='New'||st==='Packed')&&ctx.today>expShip){flag='ship';late=dayDiff(expShip,ctx.today);}
+  else if(st==='Shipped'&&ctx.today>expDeliver){flag='deliver';late=dayDiff(expDeliver,ctx.today);}
+  else if(delivered&&pending>0&&payStatus==='Pending'&&ctx.today>expPay){flag='pay';late=dayDiff(expPay,ctx.today);}
+  return {p,qty,unit,value,gst,fees,ship,cost,profit,payout,settled,pending,payStatus,expShip,expDeliver,expPay,flag,late,pays};
+}
+/* </calc> */
+const $=(s,r=document)=>r.querySelector(s);
+const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const MONTHS=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const STATUSES=['New','Packed','Shipped','Delivered','Returned','Cancelled'];
+const ST_CLS={New:'p-info',Packed:'p-info',Shipped:'p-warn',Delivered:'p-good',Returned:'p-bad',Cancelled:''};
+const ALLOC_TO=['New stock','Ads / Recovery','Home / Personal','Debt repaid','Savings / FD','Other'];
+const todayD=()=>{const n=new Date();return new Date(n.getFullYear(),n.getMonth(),n.getDate());};
+const money=n=>{n=Math.round(num(n)*100)/100;return (n<0?'-':'')+'₹'+Math.abs(n).toLocaleString('en-IN',{maximumFractionDigits:2});};
+const fmtDate=d=>{const x=typeof d==='string'?pd(d):d;if(!x)return '—';return x.getDate()+' '+MONTHS[x.getMonth()]+(x.getFullYear()!==todayD().getFullYear()?' '+String(x.getFullYear()).slice(2):'');};
+const monthLabel=k=>{if(k==='all')return 'All months';const m=/^(\d{4})-(\d{2})$/.exec(k);return m?MONTHS[+m[2]-1]+' '+m[1]:k;};
+const sum=(a,f)=>a.reduce((s,x)=>s+num(f(x)),0);
+const sanitizeId=s=>String(s||'').trim().replace(/[^A-Za-z0-9_\-.~:@+]/g,'_').slice(0,120);
+const S={tab:'hisaab',month:'all',filter:'all',q:'',ready:false,demo:false,readOnly:false,limit:150};
+const D={products:[],orders:[],payments:[],expenses:[],settings:{}};
+let DB=null,DL=null,C=null,raf=0;
+function cfgFor(name){
+  const base=DEFAULT_PLATFORMS[name]||DEFAULT_PLATFORMS.Other;
+  const o=((D.settings&&D.settings.platforms)||{})[name]||{};
+  return {ship:pick(o.ship,base.ship),deliver:pick(o.deliver,base.deliver),pay:pick(o.pay,base.pay)};
+}
+function recompute(){
+  const prod=new Map(D.products.map(p=>[p.sku,p]));
+  const lk=buildLinks(D.orders,D.payments);
+  const ctx={prod,links:lk.links,cfg:cfgFor,today:todayD()};
+  const orders=D.orders.map(o=>({o,c:calcOrder(o,ctx)}));
+  orders.sort((a,b)=>String(b.o.date||'').localeCompare(String(a.o.date||''))||String(b.o.orderId||'').localeCompare(String(a.o.orderId||'')));
+  const sold=new Map();
+  orders.forEach(({o})=>{if(o.status!=='Cancelled'&&o.status!=='Returned')sold.set(o.sku,(sold.get(o.sku)||0)+num(o.qty));});
+  const stock=D.products.map(p=>{const s=sold.get(p.sku)||0;const cur=num(p.opening)+num(p.added)-s;
+    const unitProfit=num(p.price)-(num(p.price)?num(p.price)-num(p.price)/(1+num(p.gst)/100):0)-num(p.price)*num(p.feePct)/100-num(p.shipCharge)-num(p.cost);
+    return {p,sold:s,cur,alert:cur<=num(p.reorder),unitProfit};});
+  stock.sort((a,b)=>String(a.p.name||'').localeCompare(String(b.p.name||'')));
+  C={ctx,orders,links:lk.links,linked:lk.linked,unmatched:lk.unmatched,stock};
+}
+const inMonth=(key,d)=>key==='all'||String(d||'').slice(0,7)===key;
+function monthKeys(){
+  const s=new Set();
+  [D.orders,D.expenses,D.payments].forEach(a=>a.forEach(x=>{const k=String(x.date||'').slice(0,7);if(/^\d{4}-\d{2}$/.test(k))s.add(k);}));
+  return [...s].sort().reverse();
+}
+function stats(key){
+  const os=C.orders.filter(x=>inMonth(key,x.o.date));
+  const cnt=s=>os.filter(x=>x.o.status===s).length;
+  const live=os.filter(x=>x.o.status!=='Returned'&&x.o.status!=='Cancelled');
+  const realized=sum(os.filter(x=>x.o.status==='Delivered'||x.o.status==='Returned'),x=>x.c.profit);
+  const expected=sum(os.filter(x=>['New','Packed','Shipped'].includes(x.o.status)),x=>x.c.profit);
+  const exp=sum(D.expenses.filter(e=>inMonth(key,e.date)),e=>e.amount);
+  return {os,total:os.length,delivered:cnt('Delivered'),returned:cnt('Returned'),cancelled:cnt('Cancelled'),transit:os.length-cnt('Delivered')-cnt('Returned')-cnt('Cancelled'),
+    sales:sum(live,x=>x.c.value),gst:sum(live,x=>x.c.gst),realized,expected,exp,net:realized-exp,
+    received:sum(D.payments.filter(p=>inMonth(key,p.date)),p=>p.amount),pending:sum(os,x=>x.c.pending),
+    rr:os.length?cnt('Returned')/os.length:0};
+}
+function flowStats(key){
+  const ps=D.payments.filter(p=>inMonth(key,p.date));
+  let total=0,al=0;const by={};
+  ps.forEach(p=>{total+=num(p.amount);(p.alloc||[]).forEach(r=>{by[r.to]=(by[r.to]||0)+num(r.amount);al+=num(r.amount);});});
+  return {total,by,left:total-al,count:ps.length};
+}
+function groupBy(os,keyf){
+  const m=new Map();
+  os.forEach(x=>{const k=keyf(x)||'—';if(!m.has(k))m.set(k,[]);m.get(k).push(x);});
+  return [...m.entries()].map(([k,a])=>({k,n:a.length,sales:sum(a.filter(x=>x.o.status!=='Returned'&&x.o.status!=='Cancelled'),x=>x.c.value),
+    profit:sum(a.filter(x=>x.o.status==='Delivered'||x.o.status==='Returned'),x=>x.c.profit),
+    ret:a.filter(x=>x.o.status==='Returned').length,qty:sum(a.filter(x=>x.o.status==='Delivered'),x=>x.o.qty)}));
+}
+const FILTERS=[
+  ['all','All',()=>true,1],
+  ['process','To ship',x=>x.o.status==='New'||x.o.status==='Packed',1],
+  ['shipped','In transit',x=>x.o.status==='Shipped',1],
+  ['delivered','Delivered',x=>x.o.status==='Delivered',1],
+  ['paypending','Payment pending',x=>x.c.pending>0,1],
+  ['late-ship','Late dispatch',x=>x.c.flag==='ship',0],
+  ['late-deliver','Late delivery',x=>x.c.flag==='deliver',0],
+  ['late-pay','Late payment',x=>x.c.flag==='pay',0],
+  ['short','Short payment',x=>x.c.payStatus==='Short',0],
+  ['rr','Return / Cancel',x=>x.o.status==='Returned'||x.o.status==='Cancelled',1]
+];
+function nextInfo(r){
+  const {o,c}=r,st=o.status;
+  if(st==='New'||st==='Packed')return c.flag==='ship'?['Dispatch '+c.late+' days late','bad']:['Ship by '+fmtDate(c.expShip),''];
+  if(st==='Shipped')return c.flag==='deliver'?['Delivery '+c.late+' days late','bad']:['Arrives ~'+fmtDate(c.expDeliver),''];
+  if(st==='Delivered'){
+    if(c.payout<=0)return ['',''];
+    if(c.payStatus==='Received')return ['Payment received','good'];
+    if(c.payStatus==='Short')return ['Short, pending '+money(c.pending),'warn'];
+    return c.flag==='pay'?['Payment '+c.late+' days overdue','bad']:['Payment ~'+fmtDate(c.expPay),''];
+  }
+  return [st==='Returned'?'Returned':'Cancelled',''];
+}
+const TABS=[['hisaab','Dashboard','dash'],['orders','Orders','orders'],['payments','Payments','pay'],['expenses','Expenses','exp'],['stock','Stock','stock'],['setting','Settings','set']];
+const IC={
+  dash:'<path d="M3 13h8V3H3zM13 21h8V11h-8zM13 3v6h8V3zM3 21h8v-6H3z"/>',
+  orders:'<path d="M21 8 12 3 3 8v8l9 5 9-5z"/><path d="m3 8 9 5 9-5M12 13v8"/>',
+  pay:'<rect x="3" y="6" width="18" height="13" rx="2"/><path d="M3 10h18M16 15h2"/>',
+  exp:'<path d="M6 3h12v18l-3-2-3 2-3-2-3 2z"/><path d="M9 8h6M9 12h6"/>',
+  stock:'<path d="M12 3 3 8l9 5 9-5z"/><path d="m3 13 9 5 9-5"/>',
+  set:'<path d="M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12M20 18h0"/><circle cx="16" cy="6" r="2"/><circle cx="10" cy="12" r="2"/><circle cx="18" cy="18" r="2"/>',
+  sales:'<path d="M5 8h14l-1 12H6z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/>',
+  clock:'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+  undo:'<path d="M9 14 4 9l5-5"/><path d="M4 9h10a6 6 0 0 1 0 12h-3"/>'
+};
+const ico=p=>'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+p+'</svg>';
+function rangeLabel(){
+  const ks=monthKeys().slice().reverse();
+  if(!ks.length)return 'No data yet';
+  const lab=k=>MONTHS[+k.slice(5,7)-1],yr=k=>k.slice(0,4);
+  if(ks.length===1)return monthLabel(ks[0]);
+  const a=ks[0],b=ks[ks.length-1];
+  return yr(a)===yr(b)?lab(a)+' – '+lab(b)+' '+yr(b):lab(a)+' '+yr(a)+' – '+lab(b)+' '+yr(b);
+}
+function monthSelect(){
+  const ks=monthKeys();
+  if(S.month!=='all'&&!ks.includes(S.month))S.month='all';
+  return '<select class="js-month" aria-label="Choose month">'+['all',...ks].map(k=>'<option value="'+k+'"'+(k===S.month?' selected':'')+'>'+esc(monthLabel(k))+'</option>').join('')+'</select>';
+}
+function periodLabel(){return S.month==='all'?rangeLabel():monthLabel(S.month);}
+function PH(title,right){return '<div class="ph"><div><h1>'+title+'</h1><p>Princep Kart · '+esc(periodLabel())+'</p></div><div class="ph-r">'+(right||'')+'</div></div>';}
+function kpi(label,val,sub,ic,tone,cls){return '<div class="kpi"><div class="ic '+(tone||'')+'">'+ico(IC[ic])+'</div><div><span class="eyebrow">'+label+'</span><b class="num '+(cls||'')+'">'+val+'</b><span class="s">'+sub+'</span></div></div>';}
+function attention(){
+  const items=[];
+  const n=f=>C.orders.filter(f);
+  const ls=n(x=>x.c.flag==='ship'),ld=n(x=>x.c.flag==='deliver'),lp=n(x=>x.c.flag==='pay'),sh=n(x=>x.c.payStatus==='Short');
+  if(ls.length)items.push({c:ls.length,cls:'p-bad',t:'Late dispatch',d:'Shipping deadline has passed',a:'filter:late-ship'});
+  if(ld.length)items.push({c:ld.length,cls:'p-bad',t:'Late delivery',d:'In transit longer than expected',a:'filter:late-deliver'});
+  if(lp.length)items.push({c:lp.length,cls:'p-bad',t:'Late payment',d:money(sum(lp,x=>x.c.pending))+' not received yet',a:'filter:late-pay'});
+  if(sh.length)items.push({c:sh.length,cls:'p-warn',t:'Short payment',d:money(sum(sh,x=>x.c.pending))+' short',a:'filter:short'});
+  const low=C.stock.filter(s=>s.alert);
+  if(low.length)items.push({c:low.length,cls:'p-warn',t:'Running low on stock',d:low.slice(0,3).map(s=>s.p.name).join(', ')+(low.length>3?' and more':''),a:'tab:stock'});
+  if(C.unmatched.length)items.push({c:C.unmatched.length,cls:'p-info',t:'Payment with unknown Order ID',d:'Check the Order ID or add the order',a:'tab:payments'});
+  const nosku=C.orders.filter(x=>!x.c.p);
+  if(nosku.length)items.push({c:nosku.length,cls:'p-info',t:'SKU not in Stock',d:'Profit is calculated only when the product is in Stock',a:'filter:all'});
+  return items;
+}
+function chartSvg(series){
+  const W=640,H=230,pl=48,pr=12,pt=24,pb=30;
+  const vals=series.map(s=>s.v);
+  const nice=x=>{if(x<=0)return 0;const m=Math.pow(10,Math.floor(Math.log10(x)));const f=x/m;return (f<=1?1:f<=2?2:f<=5?5:10)*m;};
+  let max=nice(Math.max(0,...vals)),min=-nice(Math.max(0,...vals.map(v=>-v)));
+  if(max===0&&min===0)max=100;
+  const y=v=>pt+(max-v)/(max-min)*(H-pt-pb);
+  const fmt=v=>{const a=Math.abs(v);const s=a>=100000?(a/100000).toFixed(a%100000?1:0)+'L':a>=1000?(a/1000).toFixed(a%1000?1:0)+'k':String(Math.round(a));return (v<0?'-':'')+'₹'+s;};
+  const slot=(W-pl-pr)/series.length,bw=Math.min(56,slot*.55);
+  let g='';
+  [max,0,...(min<0?[min]:[])].forEach(t=>{g+='<line class="'+(t===0?'zero':'grid')+'" x1="'+pl+'" x2="'+(W-pr)+'" y1="'+y(t)+'" y2="'+y(t)+'"/><text x="'+(pl-6)+'" y="'+(y(t)+4)+'" text-anchor="end">'+fmt(t)+'</text>';});
+  series.forEach((s,i)=>{
+    const cx=pl+slot*i+slot/2,top=Math.min(y(0),y(s.v)),h=Math.max(1,Math.abs(y(s.v)-y(0)));
+    g+='<rect class="'+(s.v<0?'neg':'pos')+'" x="'+(cx-bw/2)+'" y="'+top+'" width="'+bw+'" height="'+h+'" rx="3"/>';
+    g+='<text class="v" x="'+cx+'" y="'+(s.v<0?top+h+13:top-5)+'" text-anchor="middle">'+fmt(s.v)+'</text>';
+    g+='<text x="'+cx+'" y="'+(H-8)+'" text-anchor="middle">'+MONTHS[+s.k.slice(5,7)-1]+'</text>';
+  });
+  return '<svg class="chart" viewBox="0 0 '+W+' '+H+'" role="img" aria-label="Net profit by month" style="min-width:380px;width:100%;height:auto">'+g+'</svg>';
+}
+function viewHisaab(){
+  const st=stats(S.month),fl=flowStats(S.month),att=attention();
+  const series=monthKeys().slice(0,12).reverse().map(k=>({k,v:Math.round(stats(k).net)}));
+  let h=PH('Dashboard',monthSelect());
+  h+='<div class="hero"><div class="bar-g"></div><div class="eyebrow">Net profit · '+esc(periodLabel())+'</div><div class="hero-n num '+(st.net<0?'bad':'')+'">'+money(st.net)+'</div>'
+   +'<div class="hero-stats"><div class="hs"><b class="num">'+money(st.realized)+'</b><span>Order profit</span></div><div class="hs"><b class="num">'+money(st.exp)+'</b><span>Expenses</span></div>'
+   +(st.expected?'<div class="hs"><b class="num">~'+money(st.expected)+'</b><span>Expected from orders in transit</span></div>':'')+'</div></div>';
+  h+='<div class="kpis">'+kpi('Sales',money(st.sales),st.total+' orders · '+st.delivered+' delivered','sales','')
+   +kpi('Payment received',money(st.received),'in this period','pay','g')
+   +kpi('Payment pending',money(st.pending),st.os.filter(x=>x.c.pending>0).length+' orders','clock','w',st.pending>0?'warn':'')
+   +kpi('Return rate',(st.rr*100).toFixed(0)+'%',st.returned+' returned · '+st.cancelled+' cancelled','undo','r',st.rr>.2?'bad':'')+'</div>';
+  h+='<div class="cols2"><div class="card"><div class="card-h"><h2>Needs attention</h2><small>'+att.length+' items</small></div>';
+  if(!att.length)h+='<div class="empty">All good. No late orders or pending payments.</div>';
+  else h+='<ul class="att">'+att.map(a=>'<li><span class="ct pill '+a.cls+'">'+a.c+'</span><div class="tx"><b>'+esc(a.t)+'</b><small>'+esc(a.d)+'</small></div><button class="btn sm" type="button" data-act="goto" data-to="'+a.a+'">View</button></li>').join('')+'</ul>';
+  h+='</div><div class="card"><div class="card-h"><h2>Where the payment money went</h2><small>'+fl.count+' payments</small></div>';
+  if(!fl.count)h+='<div class="empty">No payment entries in this period.</div>';
+  else{
+    const rows=Object.keys(fl.by).map(k=>[k,fl.by[k],0]);rows.push(['Left in account',fl.left,1]);
+    const base=Math.max(Math.abs(fl.total),1);
+    h+='<div class="flow"><div class="fr"><b>Total received</b><b class="num">'+money(fl.total)+'</b></div>'+rows.map(r=>'<div class="fr"><span>'+esc(r[0])+'</span><span class="num">'+money(r[1])+'</span><div class="bar"><i class="'+(r[2]?'':'o')+'" style="width:'+Math.max(0,Math.min(100,r[1]/base*100)).toFixed(1)+'%"></i></div></div>').join('')+'</div>';
+    h+='<p class="note">Open a payment and fill in "Where the money went" to record ads, stock, home expenses and so on. Anything not recorded shows as "Left in account".</p>';
+  }
+  h+='</div></div>';
+  if(series.length)h+='<div class="card" style="margin-top:16px"><div class="card-h"><h2>Net profit by month</h2><small>delivered orders − expenses</small></div><div class="chartbox">'+chartSvg(series)+'</div></div>';
+  const byP=groupBy(st.os,x=>x.o.sku).sort((a,b)=>b.profit-a.profit);
+  const byPl=groupBy(st.os,x=>x.o.platform).sort((a,b)=>b.sales-a.sales);
+  h+='<div class="cols2"><div class="card"><div class="card-h"><h2>By product</h2><small>'+byP.length+' products</small></div>';
+  if(!byP.length)h+='<div class="empty">No orders in this period.</div>';
+  else h+='<div class="tbl"><div class="tr h"><div>Product</div><div>Sold</div><div>Profit</div><div>Returns</div></div>'+byP.map(r=>{const p=C.ctx.prod.get(r.k);return '<div class="tr"><div>'+esc(p?p.name:r.k)+'<small class="mono">'+esc(r.k)+'</small></div><div class="num">'+r.qty+'</div><div class="num '+(r.profit<0?'bad':'')+'">'+money(r.profit)+'</div><div class="num">'+r.ret+'</div></div>';}).join('')+'</div>';
+  h+='</div><div class="card"><div class="card-h"><h2>By platform</h2><small>'+byPl.length+' platforms</small></div>';
+  if(!byPl.length)h+='<div class="empty">No orders in this period.</div>';
+  else h+='<div class="tbl"><div class="tr h"><div>Platform</div><div>Orders</div><div>Sales</div><div>Profit</div></div>'+byPl.map(r=>'<div class="tr"><div>'+esc(r.k)+'<small>'+(r.n?(r.ret/r.n*100).toFixed(0):0)+'% return</small></div><div class="num">'+r.n+'</div><div class="num">'+money(r.sales)+'</div><div class="num '+(r.profit<0?'bad':'')+'">'+money(r.profit)+'</div></div>').join('')+'</div>';
+  h+='</div></div>';
+  h+='<p class="note">Profit = order value − GST − platform fee − shipping − cost. A return counts only the fee and shipping as a loss. Costs such as ads and reverse shipping are deducted separately from the Expenses tab. GST for this period: '+money(st.gst)+'.</p>';
+  return h;
+}
+function orderRow(r){
+  const {o,c}=r,nx=nextInfo(r),inprog=['New','Packed','Shipped'].includes(o.status);
+  return '<button class="orow" type="button" data-act="open-order" data-id="'+esc(o.id)+'">'
+   +'<span class="c-prod">'+esc(c.p?c.p.name:o.sku)+'</span><span class="c-id mono">'+esc(o.orderId)+'</span>'
+   +'<span class="c-date">'+fmtDate(o.date)+'</span><span class="c-plat">'+esc(o.platform||'—')+'</span>'
+   +'<span class="c-status"><span class="pill '+(ST_CLS[o.status]||'')+'">'+esc(o.status)+'</span></span>'
+   +'<span class="c-val num">'+money(c.value)+'</span>'
+   +'<span class="c-profit num '+(c.profit<0?'bad':'good')+'"><small>'+(inprog?'Exp. ':'Profit ')+'</small>'+(inprog?'~':'')+money(c.profit)+'</span>'
+   +'<span class="c-next '+nx[1]+'">'+esc(nx[0])+'</span></button>';
+}
+function filteredOrders(){
+  const f=FILTERS.find(x=>x[0]===S.filter)||FILTERS[0];
+  const q=S.q.trim().toLowerCase();
+  return C.orders.filter(x=>inMonth(S.month,x.o.date)).filter(f[2]).filter(x=>!q||[x.o.orderId,x.o.awb,x.o.sku,x.o.platform,x.c.p&&x.c.p.name,x.o.remarks].join(' ').toLowerCase().includes(q));
+}
+function renderOrdersList(){
+  const el=$('#olist');if(!el)return;
+  const a=filteredOrders();
+  if(!C.orders.length){el.innerHTML='<div class="empty">No orders yet. Tap "+ New order" or scan an Order ID.</div>';return;}
+  if(!a.length){el.innerHTML='<div class="empty">No orders match this filter.</div>';return;}
+  el.innerHTML='<div class="otable"><div class="oh"><span class="c-prod">Product</span><span class="c-id">Order ID</span><span class="c-date">Date</span><span class="c-plat">Platform</span><span class="c-status">Status</span><span class="c-val">Value</span><span class="c-profit">Profit</span><span class="c-next">Next step</span></div>'+a.slice(0,S.limit).map(orderRow).join('')+'</div>'+(a.length>S.limit?'<p class="note">Showing the first '+S.limit+' of '+a.length+' orders. Use search or pick a month.</p>':'');
+}
+function viewOrders(){
+  const base=C.orders.filter(x=>inMonth(S.month,x.o.date));
+  const chips=FILTERS.filter(f=>f[3]||S.filter===f[0]||base.some(f[2])&&f[0]!=='all').map(f=>'<button class="chip" type="button" data-act="filter" data-k="'+f[0]+'" aria-pressed="'+(S.filter===f[0])+'">'+f[1]+' '+base.filter(f[2]).length+'</button>').join('');
+  return PH('Orders',monthSelect()+'<input id="q" type="search" placeholder="Search Order ID, product, AWB" value="'+esc(S.q)+'" aria-label="Search orders">')+'<div class="chips">'+chips+'</div><div id="olist"></div>';
+}
+function viewPayments(){
+  const pend=C.orders.filter(x=>x.c.pending>0).sort((a,b)=>a.c.expPay-b.c.expPay);
+  let h=PH('Payments',monthSelect()+'<button class="btn primary wr" type="button" data-act="new-payment">+ New payment</button>');
+  h+='<div class="sec-h" style="margin-top:0">Payment pending <small>'+pend.length+' orders · '+money(sum(pend,x=>x.c.pending))+'</small></div>';
+  if(!pend.length)h+='<div class="empty">No pending payments.</div>';
+  else h+=pend.slice(0,40).map(r=>{const nx=nextInfo(r);return '<button class="row" type="button" data-act="open-order" data-id="'+esc(r.o.id)+'"><div class="t">'+esc(r.c.p?r.c.p.name:r.o.sku)+'</div><div class="side amt num warn">'+money(r.c.pending)+'</div><div class="sub mono">'+esc(r.o.orderId)+'</div><div class="side"><span class="pill '+(r.c.flag==='pay'?'p-bad':'p-warn')+'">'+esc(r.o.platform||'')+'</span></div><div class="foot"><span>Delivery '+fmtDate(r.o.deliveredDate||r.c.expDeliver)+'</span><span class="'+nx[1]+'">'+esc(nx[0])+'</span></div></button>';}).join('')+(pend.length>40?'<p class="note">Showing the first 40.</p>':'');
+  const ps=D.payments.filter(p=>inMonth(S.month,p.date)).sort((a,b)=>String(b.date).localeCompare(String(a.date)));
+  h+='<div class="sec-h">Payments received <small>'+ps.length+' · '+money(sum(ps,p=>p.amount))+'</small></div>';
+  if(!ps.length)h+='<div class="empty">No payment entries in this period. Add one with "+ New payment".</div>';
+  else h+=ps.map(p=>{
+    const al=(p.alloc||[]).map(r=>r.to+' '+money(r.amount)).join(' · ');
+    const left=num(p.amount)-sum(p.alloc||[],r=>r.amount);
+    return '<button class="row" type="button" data-act="edit-payment" data-id="'+esc(p.id)+'"><div class="t mono">'+esc(p.orderId||'No Order ID')+'</div><div class="side amt num '+(num(p.amount)<0?'bad':'')+'">'+money(p.amount)+'</div>'
+     +'<div class="sub">'+fmtDate(p.date)+(p.account?' · '+esc(p.account):'')+(p.utr?' · '+esc(p.utr):'')+'</div><div class="side"><span class="pill '+(C.linked.has(p.id)?'p-good':'p-info')+'">'+(C.linked.has(p.id)?'Order found':'Order not found')+'</span></div>'
+     +'<div class="foot"><span>'+(al?esc(al)+' · ':'')+'In account '+money(left)+'</span>'+(num(p.deduction)?'<span class="warn">Deducted '+money(p.deduction)+'</span>':'')+'</div></button>';}).join('');
+  return h;
+}
+function viewExpenses(){
+  const es=D.expenses.filter(e=>inMonth(S.month,e.date)).sort((a,b)=>String(b.date).localeCompare(String(a.date)));
+  const cats={};es.forEach(e=>{const k=String(e.category||'Other').trim().toUpperCase();cats[k]=(cats[k]||0)+num(e.amount);});
+  let h=PH('Expenses',monthSelect()+'<button class="btn primary wr" type="button" data-act="new-expense">+ New expense</button>');
+  h+='<div class="card" style="margin-bottom:14px"><span class="eyebrow">Total expenses · '+esc(periodLabel())+'</span><div class="hero-n num" style="font-size:30px;color:var(--ink)">'+money(sum(es,e=>e.amount))+'</div><div class="stl">'+Object.keys(cats).map(k=>'<span class="pill">'+esc(k)+' '+money(cats[k])+'</span>').join('')+'</div></div>';
+  if(!es.length)return h+'<div class="empty">No expenses recorded in this period.</div>';
+  return h+es.map(e=>'<button class="row" type="button" data-act="edit-expense" data-id="'+esc(e.id)+'"><div class="t">'+esc(e.description||e.category)+'</div><div class="side amt num">'+money(e.amount)+'</div><div class="sub">'+fmtDate(e.date)+' · '+esc(e.category||'')+(e.orderId?' · '+esc(e.orderId):'')+'</div><div class="side"><span class="pill">'+esc(e.mode||'')+'</span></div></button>').join('');
+}
+function viewStock(){
+  let h=PH('Stock','<button class="btn primary wr" type="button" data-act="new-product">+ New product</button>');
+  if(!C.stock.length)return h+'<div class="empty">Add a product first: SKU, name, cost and selling price. After that, everything fills in automatically in orders.</div>';
+  return h+C.stock.map(s=>{const p=s.p;return '<button class="row" type="button" data-act="edit-product" data-id="'+esc(p.id)+'"><div class="t">'+esc(p.name)+'</div><div class="side amt num">'+s.cur+' left</div><div class="sub mono">'+esc(p.sku)+'</div><div class="side"><span class="pill '+(s.alert?'p-warn':'p-good')+'">'+(s.alert?'Reorder':'OK')+'</span></div><div class="foot"><span>Cost '+money(p.cost)+' · Selling '+money(p.price)+'</span><span class="num '+(s.unitProfit<0?'bad':'')+'">Per piece '+money(s.unitProfit)+'</span><span>Sold '+s.sold+'</span></div></button>';}).join('');
+}
+function viewSetting(){
+  const names=new Set(Object.keys(DEFAULT_PLATFORMS));
+  Object.keys((D.settings&&D.settings.platforms)||{}).forEach(k=>names.add(k));
+  D.orders.forEach(o=>{if(o.platform)names.add(o.platform);});
+  let h=PH('Settings','');
+  h+='<div class="card"><div class="card-h"><h2>Platform timeline</h2></div><p class="note" style="margin-top:0">Used to calculate the ship-by, delivery and payment dates automatically. Adjust them to match your real experience.</p><form id="setForm"><div class="tbl"><div class="tr h" style="grid-template-columns:minmax(90px,1.4fr) repeat(3,1fr)"><div>Platform</div><div>Ship (days)</div><div>Delivery (days)</div><div>Payment (days)</div></div>';
+  [...names].forEach((n,i)=>{const c=cfgFor(n);h+='<div class="tr" style="grid-template-columns:minmax(90px,1.4fr) repeat(3,1fr)"><div>'+esc(n)+'<input type="hidden" name="n'+i+'" value="'+esc(n)+'"></div>'+['ship','deliver','pay'].map(k=>'<div><input type="number" min="0" step="1" name="'+k+i+'" value="'+c[k]+'" aria-label="'+esc(n)+' '+k+'"></div>').join('')+'</div>';});
+  h+='</div><input type="hidden" name="count" value="'+names.size+'"><p class="note">Ship = days after the order to dispatch. Delivery = days after dispatch to arrive. Payment = days after delivery until the money arrives.</p><div class="acts wr"><button class="btn primary" type="submit">Save timeline</button></div></form></div>';
+  h+='<div class="card" style="margin-top:16px"><div class="card-h"><h2>Export and backup</h2></div><div class="stl"><button class="btn" type="button" data-act="export" data-k="orders">Orders CSV</button><button class="btn" type="button" data-act="export" data-k="payments">Payments CSV</button><button class="btn" type="button" data-act="export" data-k="expenses">Expenses CSV</button><button class="btn" type="button" data-act="export" data-k="stock">Stock CSV</button><button class="btn" type="button" data-act="export" data-k="backup">Full backup (JSON)</button></div>';
+  h+='<div class="f wr" style="margin-top:14px"><label for="restoreFile">Restore from backup</label><input id="restoreFile" type="file" accept="application/json,.json"><span class="hint">All records in the backup are written back. Records with the same ID are overwritten.</span></div><div class="err" id="setMsg"></div></div>';
+  h+='<div class="card" style="margin-top:16px"><div class="card-h"><h2>How QR works</h2></div><p class="note" style="margin-top:0">Open any order to see its QR. Stick it on the parcel. Later, scan the QR (camera button at the top, or the Order ID from a Bluetooth scanner) and the order, its dates and its payment all open. If you pick "Mark Shipped" or "Mark Delivered" before scanning, the status changes automatically. The Order ID or AWB on a Meesho label scans too.</p></div>';
+  return h;
+}
+function renderNav(){
+  $('#nav').innerHTML=TABS.map(t=>'<button type="button" data-act="tab" data-k="'+t[0]+'" aria-selected="'+(S.tab===t[0])+'">'+ico(IC[t[2]])+'<span>'+t[1]+'</span></button>').join('');
+  $('#bnav').innerHTML=TABS.map(t=>'<button type="button" data-act="tab" data-k="'+t[0]+'" aria-selected="'+(S.tab===t[0])+'">'+ico(IC[t[2]])+'<span>'+t[1]+'</span></button>').join('');
+}
+function renderNow(){
+  document.documentElement.classList.toggle('ro',!!S.readOnly);
+  $('#demoBar').hidden=!S.demo;
+  renderNav();
+  const v=$('#view');
+  if(!S.ready){v.innerHTML='<div class="empty">Loading data…</div>';return;}
+  recompute();
+  $('#sideFoot').textContent='Books for '+rangeLabel();
+  const fn={hisaab:viewHisaab,orders:viewOrders,payments:viewPayments,expenses:viewExpenses,stock:viewStock,setting:viewSetting}[S.tab];
+  v.innerHTML=fn();
+  if(S.tab==='orders')renderOrdersList();
+}
+function render(){
+  if(raf)return;
+  raf=requestAnimationFrame(()=>{raf=0;
+    const a=document.activeElement;
+    if(S.ready&&S.tab==='orders'&&a&&a.id==='q'){recompute();renderOrdersList();return;}
+    renderNow();
+  });
+}
+const dlg=()=>$('#dlg');
+function openDlg(html){$('#sheet').innerHTML=html;const d=dlg();if(!d.open)d.showModal();$('#sheet').scrollTop=0;}
+function closeDlg(){const d=dlg();if(d.open)d.close();}
+let toastT=0;
+function toast(m){const t=$('#toast');t.textContent=m;t.hidden=false;clearTimeout(toastT);toastT=setTimeout(()=>{t.hidden=true;},3400);}
+function copyText(s){
+  const fb=()=>{const ta=document.createElement('textarea');ta.value=s;document.body.appendChild(ta);ta.select();try{document.execCommand('copy');toast('Copied');}catch(e){toast('Could not copy');}ta.remove();};
+  if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(s).then(()=>toast('Copied'),fb);else fb();
+}
+/* ---- data layer ---- */
+const clean=o=>{const x=JSON.parse(JSON.stringify(o));delete x.id;return x;};
+const newId=col=>DB?DB.collection(col).doc().id:('l'+Date.now().toString(36)+Math.random().toString(36).slice(2,6));
+async function saveDoc(col,id,data){
+  const body=clean(data);
+  if(DB){try{await DB.collection(col).doc(id).set(body);}catch(e){toast('Could not save: '+(e&&e.message||'error'));throw e;}}
+  else{
+    if(col==='settings'){D.settings=body;}
+    else{const i=D[col].findIndex(x=>x.id===id);const row={id,...body};if(i<0)D[col].push(row);else D[col][i]=row;}
+    render();
+  }
+}
+async function delDoc(col,id){
+  if(DB){try{await DB.collection(col).doc(id).delete();}catch(e){toast('Could not delete');throw e;}}
+  else{D[col]=D[col].filter(x=>x.id!==id);render();}
+}
+function subscribe(){
+  const cols=['products','orders','payments','expenses','settings'],got={};
+  cols.forEach(col=>{
+    const done=()=>{got[col]=1;if(cols.every(c=>got[c])){S.ready=true;}render();};
+    DB.collection(col).onSnapshot(snap=>{
+      if(col==='settings'){const m=snap.docs.find(d=>d.id==='main');D.settings=m?m.data():{};}
+      else D[col]=snap.docs.map(d=>({id:d.id,...d.data()}));
+      done();
+    },err=>{toast('Could not load data ('+(err&&err.code||'error')+')');done();});
+  });
+}
+/* ---- QR ---- */
+const cl=s=>String(s==null?'':s).replace(/[|\n\r]/g,' ').trim();
+const payloadOf=(o,c)=>['KHATA',cl(o.orderId),cl(o.sku),num(o.qty)||1,cl(o.platform),cl(o.date),c?c.unit:(num(o.price)||'')].join('|');
+function parsePayload(t){const p=String(t).split('|');if(p[0]!=='KHATA'||p.length<3)return null;return {orderId:p[1],sku:p[2],qty:num(p[3])||1,platform:p[4]||'',date:p[5]||'',price:num(p[6])};}
+function qrUrl(text,cell){try{if(typeof qrcode!=='function')return '';const q=qrcode(0,'M');q.addData(text);q.make();return q.createDataURL(cell,2);}catch(e){return '';}}
+async function saveLabel(r){
+  if(!DL){toast('Saving images is not available here');return;}
+  const url=qrUrl(payloadOf(r.o,r.c),8);if(!url){toast('Could not create the QR');return;}
+  const img=await new Promise((res,rej)=>{const i=new Image();i.onload=()=>res(i);i.onerror=rej;i.src=url;});
+  const W=440,H=540,cv=document.createElement('canvas');cv.width=W;cv.height=H;const x=cv.getContext('2d');
+  x.fillStyle='#fff';x.fillRect(0,0,W,H);x.imageSmoothingEnabled=false;
+  const k=Math.max(1,Math.floor(360/img.width)),w=img.width*k;x.drawImage(img,(W-w)/2,24,w,w);
+  const fit=(t,f,max)=>{x.font=f;let s=t;while(s.length>3&&x.measureText(s).width>max)s=s.slice(0,-2);return s===t?t:s+'…';};
+  x.fillStyle='#111';x.textAlign='center';
+  x.fillText(fit(r.c.p?r.c.p.name:r.o.sku,'700 24px sans-serif',400),W/2,24+w+44);
+  x.fillText(fit(r.o.orderId,'500 17px monospace',400),W/2,24+w+76);
+  x.fillText('Qty '+num(r.o.qty)+' · '+(r.o.platform||''),W/2,24+w+108);
+  cv.toBlob(b=>{if(!b){toast('Could not create the image');return;}DL.save({filename:'label-'+sanitizeId(r.o.orderId)+'.png',data:b}).then(()=>toast('Label saved'),e=>{if(!e||e.code!=='declined')toast('Could not save');});},'image/png');
+}
+/* ---- order detail ---- */
+function stepLi(label,date,done,late){return '<li class="'+(done?'done':'')+(late?' late':'')+'"><span class="dot"></span><div><b>'+label+'</b><span>'+date+(late?' · <span class="bad">'+late+'</span>':'')+'</span></div></li>';}
+function orderDetailHtml(r){
+  const {o,c}=r,st=o.status,ended=st==='Returned'||st==='Cancelled',pays=c.pays;
+  const shipped=['Shipped','Delivered'].includes(st),deliv=st==='Delivered';
+  let tl='<ol class="tl">'+stepLi('Order placed',fmtDate(o.date),true,'');
+  if(ended)tl+=stepLi(st==='Returned'?'Returned':'Cancelled',st==='Returned'?'Fee and shipping loss is counted':'No profit or loss',true,'');
+  else{
+    tl+=stepLi('Ship',o.shippedDate?fmtDate(o.shippedDate):'Ship by '+fmtDate(c.expShip),shipped,c.flag==='ship'?c.late+' days late':'');
+    tl+=stepLi('Delivery',deliv?fmtDate(o.deliveredDate||c.expDeliver)+(o.deliveredDate?'':' (estimated)'):'Expected by ~'+fmtDate(c.expDeliver),deliv,c.flag==='deliver'?c.late+' days late':'');
+    const lastPay=pays.length?pays.map(p=>p.date).sort().pop():'';
+    tl+=stepLi('Payment',c.payStatus==='Received'?'Received on '+fmtDate(lastPay):(c.payout>0?'Expected by ~'+fmtDate(c.expPay):'After delivery'),c.payStatus==='Received',c.flag==='pay'?c.late+' days late':'');
+  }
+  tl+='</ol>';
+  const inprog=['New','Packed','Shipped'].includes(st);
+  let kv='<dl class="kv"><dt>Order value ('+c.qty+' × '+money(c.unit)+')</dt><dd>'+money(c.value)+'</dd>'
+    +(c.gst?'<dt>GST</dt><dd>− '+money(c.gst)+'</dd>':'')+(c.fees?'<dt>Platform fee</dt><dd>− '+money(c.fees)+'</dd>':'')+(c.ship?'<dt>Shipping</dt><dd>− '+money(c.ship)+'</dd>':'')
+    +'<dt>Cost</dt><dd>− '+money(c.cost)+'</dd><dt class="tot">'+(inprog?'Expected profit':'Net profit')+'</dt><dd class="tot '+(c.profit<0?'bad':'good')+'">'+money(c.profit)+'</dd>';
+  if(st==='Delivered')kv+='<dt>Platform payout due</dt><dd>'+money(c.payout)+'</dd><dt>Received so far</dt><dd>'+money(c.settled)+'</dd><dt>Pending</dt><dd class="'+(c.pending>0?'warn':'')+'">'+money(c.pending)+'</dd>';
+  kv+='</dl>';
+  let pl='';
+  if(pays.length)pl='<div class="sub-h">Payments received</div>'+pays.map(p=>{
+    const al=(p.alloc||[]);const left=num(p.amount)-sum(al,a=>a.amount);
+    return '<div class="prev"><b class="num">'+money(p.amount)+'</b> · '+fmtDate(p.date)+(p.account?' · '+esc(p.account):'')+(p.utr?'<br><span class="mono">'+esc(p.utr)+'</span>':'')
+      +(num(p.deduction)?'<br><span class="warn">Deducted by platform: '+money(p.deduction)+'</span>':'')
+      +'<br><span class="hint">Where the money went: '+(al.length?al.map(a=>esc(a.to)+' '+money(a.amount)+(a.note?' ('+esc(a.note)+')':'')).join(', ')+', ':'')+'Left in account '+money(left)+'</span></div>';}).join('');
+  const url=qrUrl(payloadOf(o,c),5);
+  const qr='<div class="sub-h">QR</div><div class="qrbox">'+(url?'<img id="qrimg" alt="QR code for this order" src="'+url+'">':'<span class="hint">QR library failed to load.</span>')+'<div class="qt"><div class="hint">Stick it on the parcel. Scanning it opens this order, and fills in every detail even on a new device.</div><div class="stl" style="margin-top:8px"><button class="btn sm" type="button" data-act="copy-qr" data-id="'+esc(o.id)+'">Copy code</button>'+(DL&&url?'<button class="btn sm" type="button" data-act="save-qr" data-id="'+esc(o.id)+'">Save label image</button>':'')+'</div></div></div>';
+  const chg='<div class="sub-h wr">Change status</div><div class="stl wr">'+STATUSES.filter(s=>s!==st).map(s=>'<button class="btn sm" type="button" data-act="status" data-id="'+esc(o.id)+'" data-s="'+s+'">'+s+'</button>').join('')+'</div>';
+  return '<div class="sh-h"><div><h2>'+esc(c.p?c.p.name:o.sku)+'</h2><span class="mono">'+esc(o.orderId)+'</span></div><div class="side"><span class="pill '+(ST_CLS[st]||'')+'">'+esc(st)+'</span></div></div>'
+    +'<div class="hint" style="margin-bottom:8px">'+esc(o.platform||'')+' · '+fmtDate(o.date)+(o.awb?' · AWB '+esc(o.awb):'')+(o.remarks?' · '+esc(o.remarks):'')+'</div>'
+    +tl+'<div class="sub-h">Hisaab</div>'+kv+pl+qr+chg
+    +'<div class="acts"><button class="btn primary wr" type="button" data-act="edit-order" data-id="'+esc(o.id)+'">Edit</button><button class="btn danger wr" type="button" data-act="del" data-col="orders" data-id="'+esc(o.id)+'">Delete</button><span class="sp"></span><button class="btn" type="button" data-act="close">Close</button></div>';
+}
+function openOrder(id){const r=C.orders.find(x=>x.o.id===id);if(!r)return;openDlg(orderDetailHtml(r));}
+async function changeStatus(o,st){
+  const n={...o,status:st},t=fd(todayD());
+  if(st==='Shipped'&&!n.shippedDate)n.shippedDate=t;
+  if(st==='Delivered'&&!n.deliveredDate)n.deliveredDate=t;
+  await saveDoc('orders',o.id,n);
+}
+/* ---- order form ---- */
+function fld(label,id,val,attrs,extra){return '<div class="f"><label for="'+id+'">'+label+'</label><input id="'+id+'" value="'+esc(val==null?'':val)+'" '+(attrs||'')+'>'+(extra||'')+'</div>';}
+function openOrderForm(o,hint){
+  o=o||{};const isNew=!o.id;
+  if(!D.products.length){openDlg('<div class="sh-h"><h2>Add a product first</h2></div><p>To auto-fill everything in an order, you first need a product in Stock (SKU, cost, selling price).</p><div class="acts"><button class="btn primary" type="button" data-act="new-product">+ New product</button><button class="btn" type="button" data-act="close">Later</button></div>');return;}
+  const known=D.products.some(p=>p.sku===o.sku);
+  const opts='<option value="">— select —</option>'+(o.sku&&!known?'<option value="'+esc(o.sku)+'" selected>'+esc(o.sku)+' (not in Stock)</option>':'')+D.products.map(p=>'<option value="'+esc(p.sku)+'"'+(p.sku===o.sku?' selected':'')+'>'+esc(p.sku)+' — '+esc(p.name)+'</option>').join('');
+  const pls=new Set(Object.keys(DEFAULT_PLATFORMS));D.orders.forEach(x=>{if(x.platform)pls.add(x.platform);});pls.delete('Other');
+  const t=fd(todayD());
+  openDlg('<div class="sh-h"><h2>'+(isNew?'New order':'Edit order')+'</h2><button class="btn sm" type="button" data-act="close">Close</button></div>'
+   +(hint?'<div class="prev hint">'+esc(hint)+'</div>':'')
+   +'<form id="orderForm" data-id="'+esc(o.id||'')+'" novalidate>'
+   +'<div class="g2">'+fld('Platform','f_platform',o.platform||'Meesho','list="plList" autocomplete="off"','<datalist id="plList">'+[...pls].map(p=>'<option value="'+esc(p)+'">').join('')+'</datalist>')+fld('Order date','f_date',o.date||t,'type="date"')+'</div>'
+   +fld('Order ID','f_orderId',o.orderId||'','autocomplete="off"')
+   +'<div class="f"><label for="f_sku">Product (SKU)</label><select id="f_sku">'+opts+'</select></div>'
+   +'<div class="g3">'+fld('Qty','f_qty',o.qty||1,'type="number" min="1" step="1" inputmode="numeric"')+fld('Price / piece (auto)','f_price',o.price||'','type="number" min="0" step="any" inputmode="decimal" placeholder="auto"')+'<div class="f"><label for="f_status">Status</label><select id="f_status">'+STATUSES.map(s=>'<option'+(s===(o.status||'New')?' selected':'')+'>'+s+'</option>').join('')+'</select></div></div>'
+   +'<div class="g2">'+fld('Shipped date','f_shipped',o.shippedDate||'','type="date"')+fld('Delivered date','f_delivered',o.deliveredDate||'','type="date"')+'</div>'
+   +'<div class="g2">'+fld('AWB / Tracking','f_awb',o.awb||'','autocomplete="off"')+fld('Payment received (manual)','f_manual',o.receivedManual||'','type="number" step="any" inputmode="decimal" placeholder="if not in Payments tab"')+'</div>'
+   +fld('Remarks','f_remarks',o.remarks||'','autocomplete="off"')
+   +'<div class="prev" id="oprev" aria-live="polite"></div><div class="err" id="ferr"></div>'
+   +'<div class="acts"><button class="btn primary" type="submit">Save</button><button class="btn" type="button" data-act="close">Cancel</button></div></form>');
+  updatePreview();
+}
+function readOrderForm(){
+  const g=id=>$('#'+id).value.trim();
+  return {platform:g('f_platform'),orderId:g('f_orderId'),date:g('f_date'),sku:g('f_sku'),qty:num(g('f_qty')),price:num(g('f_price')),status:g('f_status'),awb:g('f_awb'),shippedDate:g('f_shipped'),deliveredDate:g('f_delivered'),receivedManual:num(g('f_manual')),remarks:g('f_remarks')};
+}
+function updatePreview(){
+  const el=$('#oprev');if(!el||!$('#orderForm'))return;
+  const o=readOrderForm();o.id=$('#orderForm').dataset.id||undefined;
+  const c=calcOrder(o,C.ctx);
+  if(!c.p){el.innerHTML='<span class="hint">Choose a product. Name, price, profit and the ship, delivery and payment dates will appear here automatically.</span>';return;}
+  const inprog=['New','Packed','Shipped'].includes(o.status);
+  el.innerHTML='<b>'+esc(c.p.name)+'</b><dl class="kv" style="margin-top:6px"><dt>Order value</dt><dd>'+money(c.value)+'</dd><dt>Fee + shipping + GST</dt><dd>− '+money(c.fees+c.ship+c.gst)+'</dd><dt>Cost</dt><dd>− '+money(c.cost)+'</dd><dt class="tot">'+(inprog?'Expected profit':'Profit')+'</dt><dd class="tot '+(c.profit<0?'bad':'good')+'">'+money(c.profit)+'</dd>'
+   +'<dt>Ship by</dt><dd>'+fmtDate(c.expShip)+'</dd><dt>Delivery</dt><dd>~'+fmtDate(c.expDeliver)+'</dd><dt>Payment</dt><dd>~'+fmtDate(c.expPay)+'</dd></dl>';
+}
+async function submitOrder(form){
+  const o=readOrderForm(),err=$('#ferr'),id=form.dataset.id;
+  if(!o.orderId)return void(err.textContent='Enter the Order ID.');
+  if(!o.sku)return void(err.textContent='Select a product (SKU).');
+  if(!(o.qty>0))return void(err.textContent='Qty must be 1 or more.');
+  if(!pd(o.date))return void(err.textContent='Enter a valid order date.');
+  if(!id&&!form.dataset.dup&&D.orders.some(x=>full(x.orderId)===full(o.orderId))){form.dataset.dup='1';err.textContent='This Order ID already exists. Press Save again to add it anyway.';return;}
+  const old=id?D.orders.find(x=>x.id===id):null;
+  try{await saveDoc('orders',id||newId('orders'),{...(old||{}),...o});toast('Order saved');closeDlg();}catch(e){}
+}
+/* ---- payment form ---- */
+function allocRow(a){a=a||{};return '<div class="alloc"><select class="al-to" aria-label="Where it went">'+ALLOC_TO.map(t=>'<option'+(t===a.to?' selected':'')+'>'+t+'</option>').join('')+'</select><input class="al-amt" type="number" step="any" inputmode="decimal" placeholder="₹ amount" value="'+esc(a.amount||'')+'" aria-label="Amount"><input class="al-note" placeholder="Note" value="'+esc(a.note||'')+'" aria-label="Note"><button class="btn sm" type="button" data-act="alloc-del" aria-label="Remove row">×</button></div>';}
+function openPaymentForm(p){
+  p=p||{};const isNew=!p.id;
+  const accts=[...new Set(D.payments.map(x=>x.account).filter(Boolean))];
+  openDlg('<div class="sh-h"><h2>'+(isNew?'New payment':'Edit payment')+'</h2><button class="btn sm" type="button" data-act="close">Close</button></div>'
+   +'<form id="payForm" data-id="'+esc(p.id||'')+'" novalidate><div class="g2">'+fld('Settlement date','p_date',p.date||fd(todayD()),'type="date"')+fld('Amount received (₹)','p_amount',p.amount===undefined?'':p.amount,'type="number" step="any" inputmode="decimal"')+'</div>'
+   +fld('Order ID','p_order',p.orderId||'','list="oidList" autocomplete="off"','<datalist id="oidList">'+D.orders.slice(0,400).map(o=>'<option value="'+esc(o.orderId)+'">').join('')+'</datalist><span class="hint" id="p_match"></span>')
+   +'<div class="g2">'+fld('Deducted by platform (₹)','p_ded',p.deduction||'','type="number" step="any" inputmode="decimal" placeholder="ads / recovery"')+fld('UTR / Reference','p_utr',p.utr||'','autocomplete="off"')+'</div>'
+   +fld('Received in account','p_acct',p.account||'','list="acctList" autocomplete="off" placeholder="e.g. Axis Bank"','<datalist id="acctList">'+accts.map(a=>'<option value="'+esc(a)+'">').join('')+'</datalist>')
+   +fld('Remarks','p_rem',p.remarks||'','autocomplete="off"')
+   +'<div class="lbl">Where the money went</div><div id="allocs" style="margin-top:6px">'+(p.alloc||[]).map(allocRow).join('')+'</div><button class="btn sm" type="button" data-act="alloc-add">+ Add row</button> <span class="hint" id="p_left"></span>'
+   +'<div class="err" id="ferr"></div><div class="acts"><button class="btn primary" type="submit">Save</button>'+(isNew?'':'<button class="btn danger" type="button" data-act="del" data-col="payments" data-id="'+esc(p.id)+'">Delete</button>')+'<button class="btn" type="button" data-act="close">Cancel</button></div></form>');
+  updatePayHints();
+}
+function readAllocs(){return [...document.querySelectorAll('#allocs .alloc')].map(r=>({to:r.querySelector('.al-to').value,amount:num(r.querySelector('.al-amt').value),note:r.querySelector('.al-note').value.trim()})).filter(a=>a.amount);}
+function updatePayHints(){
+  const m=$('#p_match'),l=$('#p_left');if(!m)return;
+  const id=$('#p_order').value.trim();
+  if(id){const r=C.orders.find(x=>full(x.o.orderId)===full(id)||core(x.o.orderId)===core(id));m.textContent=r?'Order found: '+(r.c.p?r.c.p.name:r.o.sku)+' · payout due '+money(r.c.payout):'No order found for this Order ID.';}else m.textContent='';
+  l.textContent='Left in account: '+money(num($('#p_amount').value)-sum(readAllocs(),a=>a.amount));
+}
+async function submitPayment(form){
+  const err=$('#ferr'),id=form.dataset.id,g=i=>$('#'+i).value.trim();
+  if(!pd(g('p_date')))return void(err.textContent='Enter a valid date.');
+  if(g('p_amount')==='')return void(err.textContent='Enter the amount.');
+  const old=id?D.payments.find(x=>x.id===id):null;
+  const d={...(old||{}),date:g('p_date'),amount:num(g('p_amount')),orderId:g('p_order'),deduction:num(g('p_ded')),utr:g('p_utr'),account:g('p_acct'),remarks:g('p_rem'),alloc:readAllocs()};
+  try{await saveDoc('payments',id||newId('payments'),d);toast('Payment saved');closeDlg();}catch(e){}
+}
+/* ---- expense form ---- */
+function openExpenseForm(e){
+  e=e||{};const isNew=!e.id;
+  const cats=[...new Set(['Ads','Return / reverse shipping','Packaging','Stock purchase','Platform charges','Transport',...D.expenses.map(x=>String(x.category||'').trim()).filter(Boolean)])];
+  openDlg('<div class="sh-h"><h2>'+(isNew?'New expense':'Edit expense')+'</h2><button class="btn sm" type="button" data-act="close">Close</button></div>'
+   +'<form id="expForm" data-id="'+esc(e.id||'')+'" novalidate><div class="g2">'+fld('Date','e_date',e.date||fd(todayD()),'type="date"')+fld('Amount (₹)','e_amount',e.amount===undefined?'':e.amount,'type="number" step="any" inputmode="decimal"')+'</div>'
+   +fld('Category','e_cat',e.category||'','list="catList" autocomplete="off"','<datalist id="catList">'+cats.map(c=>'<option value="'+esc(c)+'">').join('')+'</datalist>')
+   +fld('Description','e_desc',e.description||'','autocomplete="off"')
+   +'<div class="g2">'+fld('Paid how / deducted from','e_mode',e.mode||'','autocomplete="off" placeholder="Cash, UPI, from Meesho payout"')+fld('Order ID (optional)','e_oid',e.orderId||'','autocomplete="off"')+'</div>'
+   +fld('Remarks','e_rem',e.remarks||'','autocomplete="off"')
+   +'<div class="err" id="ferr"></div><div class="acts"><button class="btn primary" type="submit">Save</button>'+(isNew?'':'<button class="btn danger" type="button" data-act="del" data-col="expenses" data-id="'+esc(e.id)+'">Delete</button>')+'<button class="btn" type="button" data-act="close">Cancel</button></div></form>');
+}
+async function submitExpense(form){
+  const err=$('#ferr'),id=form.dataset.id,g=i=>$('#'+i).value.trim();
+  if(!pd(g('e_date')))return void(err.textContent='Enter a valid date.');
+  if(g('e_amount')==='')return void(err.textContent='Enter the amount.');
+  const old=id?D.expenses.find(x=>x.id===id):null;
+  try{await saveDoc('expenses',id||newId('expenses'),{...(old||{}),date:g('e_date'),amount:num(g('e_amount')),category:g('e_cat'),description:g('e_desc'),mode:g('e_mode'),orderId:g('e_oid'),remarks:g('e_rem')});toast('Expense saved');closeDlg();}catch(e){}
+}
+/* ---- product form ---- */
+function openProductForm(p){
+  p=p||{};const isNew=!p.id;
+  openDlg('<div class="sh-h"><h2>'+(isNew?'New product':'Edit product')+'</h2><button class="btn sm" type="button" data-act="close">Close</button></div>'
+   +'<form id="prodForm" data-id="'+esc(p.id||'')+'" novalidate><div class="g2">'+fld('SKU','s_sku',p.sku||'','autocomplete="off"'+(isNew?'':' readonly'))+fld('Name','s_name',p.name||'','autocomplete="off"')+'</div>'
+   +'<div class="g2">'+fld('Cost price (₹)','s_cost',p.cost===undefined?'':p.cost,'type="number" step="any" inputmode="decimal"')+fld('Selling price (₹)','s_price',p.price===undefined?'':p.price,'type="number" step="any" inputmode="decimal"')+'</div>'
+   +'<div class="g3">'+fld('GST %','s_gst',p.gst||0,'type="number" step="any" inputmode="decimal"')+fld('Platform fee %','s_fee',p.feePct||0,'type="number" step="any" inputmode="decimal"')+fld('Shipping / order','s_ship',p.shipCharge||0,'type="number" step="any" inputmode="decimal"')+'</div>'
+   +'<div class="g3">'+fld('Opening stock','s_open',p.opening||0,'type="number" step="1" inputmode="numeric"')+fld('Stock added (total)','s_add',p.added||0,'type="number" step="1" inputmode="numeric"')+fld('Reorder level','s_re',p.reorder||0,'type="number" step="1" inputmode="numeric"')+'</div>'
+   +fld('Remarks','s_rem',p.remarks||'','autocomplete="off"')
+   +'<div class="err" id="ferr"></div><div class="acts"><button class="btn primary" type="submit">Save</button>'+(isNew?'':'<button class="btn danger" type="button" data-act="del" data-col="products" data-id="'+esc(p.id)+'">Delete</button>')+'<button class="btn" type="button" data-act="close">Cancel</button></div></form>');
+}
+async function submitProduct(form){
+  const err=$('#ferr'),id=form.dataset.id,g=i=>$('#'+i).value.trim();
+  const sku=g('s_sku');
+  if(!sku)return void(err.textContent='Enter the SKU.');
+  if(!g('s_name'))return void(err.textContent='Enter the name.');
+  if(!id&&D.products.some(x=>x.sku===sku))return void(err.textContent='This SKU already exists.');
+  const old=id?D.products.find(x=>x.id===id):null;
+  const d={...(old||{}),sku,name:g('s_name'),cost:num(g('s_cost')),price:num(g('s_price')),gst:num(g('s_gst')),feePct:num(g('s_fee')),shipCharge:num(g('s_ship')),opening:num(g('s_open')),added:num(g('s_add')),reorder:num(g('s_re')),remarks:g('s_rem')};
+  try{await saveDoc('products',id||sanitizeId(sku),d);toast('Product saved');closeDlg();}catch(e){}
+}
+/* ---- scan ---- */
+function findOrder(t){
+  const f=full(t),c=core(t);if(!f)return null;
+  return C.orders.find(x=>full(x.o.orderId)===f||(x.o.awb&&full(x.o.awb)===f))||C.orders.find(x=>core(x.o.orderId)===c)||null;
+}
+async function handleScan(raw){
+  raw=String(raw||'').trim();if(!raw)return;
+  if(!S.ready){toast('Data is still loading');return;}
+  recompute();
+  const pl=parsePayload(raw),id=pl?pl.orderId:raw,r=findOrder(id),mode=$('#scanMode').value;
+  if(r){
+    const target={ship:'Shipped',deliver:'Delivered',ret:'Returned'}[mode];
+    if(target&&!S.readOnly){
+      if(r.o.status===target){toast(target+' already: '+(r.c.p?r.c.p.name:r.o.sku));return;}
+      try{await changeStatus(r.o,target);toast(target+': '+(r.c.p?r.c.p.name:r.o.sku));}catch(e){}
+      return;
+    }
+    openOrder(r.o.id);return;
+  }
+  if(S.readOnly){toast('Order not found');return;}
+  openOrderForm({platform:(pl&&pl.platform)||'Meesho',orderId:id,date:(pl&&pl.date)||fd(todayD()),sku:pl?pl.sku:'',qty:pl?pl.qty:1,price:pl&&pl.price||0,status:'New'},pl?'Filled in everything from the QR. Check it and press Save.':'This Order ID is not in the system yet. Choose a product and the rest fills in automatically.');
+}
+async function decodeFile(file){
+  const url=URL.createObjectURL(file);
+  try{
+    const img=await new Promise((res,rej)=>{const i=new Image();i.onload=()=>res(i);i.onerror=rej;i.src=url;});
+    if('BarcodeDetector' in window){try{const r=await new BarcodeDetector().detect(img);if(r&&r.length&&r[0].rawValue)return r[0].rawValue;}catch(e){}}
+    if(typeof jsQR==='function'){
+      for(const side of [1280,800,480]){
+        const sc=Math.min(1,side/Math.max(img.naturalWidth,img.naturalHeight)),w=Math.max(1,Math.round(img.naturalWidth*sc)),h=Math.max(1,Math.round(img.naturalHeight*sc));
+        const cv=document.createElement('canvas');cv.width=w;cv.height=h;const x=cv.getContext('2d',{willReadFrequently:true});x.drawImage(img,0,0,w,h);
+        const r=jsQR(x.getImageData(0,0,w,h).data,w,h,{inversionAttempts:'attemptBoth'});if(r&&r.data)return r.data;
+      }
+    }
+  }finally{URL.revokeObjectURL(url);}
+  return null;
+}
+/* ---- export / backup ---- */
+const csvCell=v=>{v=v==null?'':String(v);return /[",\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v;};
+const toCsv=rows=>'﻿'+rows.map(r=>r.map(csvCell).join(',')).join('\n');
+async function doExport(k){
+  if(!DL){toast('Downloads are not available here');return;}
+  let name,data;
+  if(k==='orders'){name='orders.csv';data=toCsv([['Date','Order ID','Platform','SKU','Product','Qty','Status','Order value','GST','Fee','Shipping','Cost','Profit','Payout','Received','Pending','Ship by','Delivery','Payment by']].concat(C.orders.map(({o,c})=>[o.date,o.orderId,o.platform,o.sku,c.p?c.p.name:'',o.qty,o.status,c.value,c.gst,c.fees,c.ship,c.cost,c.profit,c.payout,c.settled,c.pending,fd(c.expShip),fd(c.expDeliver),fd(c.expPay)])));}
+  else if(k==='payments'){name='payments.csv';data=toCsv([['Date','Order ID','Amount','Deducted','UTR','Account','Remarks','Where it went']].concat(D.payments.map(p=>[p.date,p.orderId,p.amount,p.deduction,p.utr,p.account,p.remarks,(p.alloc||[]).map(a=>a.to+' '+a.amount).join('; ')])));}
+  else if(k==='expenses'){name='expenses.csv';data=toCsv([['Date','Category','Description','Amount','Mode','Order ID','Remarks']].concat(D.expenses.map(e=>[e.date,e.category,e.description,e.amount,e.mode,e.orderId,e.remarks])));}
+  else if(k==='stock'){name='stock.csv';data=toCsv([['SKU','Product','Cost','Price','GST %','Fee %','Shipping','Opening','Added','Sold','Left','Reorder']].concat(C.stock.map(s=>[s.p.sku,s.p.name,s.p.cost,s.p.price,s.p.gst,s.p.feePct,s.p.shipCharge,s.p.opening,s.p.added,s.sold,s.cur,s.p.reorder])));}
+  else{name='order-ledger-backup-'+fd(todayD())+'.json';data=JSON.stringify({app:'order-khata',v:1,products:D.products,orders:D.orders,payments:D.payments,expenses:D.expenses,settings:D.settings},null,1);}
+  try{await DL.save({filename:name,data});toast('File saved');}catch(e){if(!e||e.code!=='declined')toast('Could not save');}
+}
+async function doRestore(file){
+  const msg=$('#setMsg');
+  try{
+    const j=JSON.parse(await file.text());
+    if(!j||j.app!=='order-khata')throw new Error('This does not look like an Order Ledger backup.');
+    let n=0;
+    for(const col of ['products','orders','payments','expenses']){for(const row of (j[col]||[])){if(!row||!row.id)continue;await saveDoc(col,row.id,row);n++;}}
+    if(j.settings&&typeof j.settings==='object')await saveDoc('settings','main',j.settings);
+    msg.className='err good';msg.textContent=n+' records restored.';
+  }catch(e){msg.className='err';msg.textContent='Restore failed: '+(e&&e.message||'invalid file');}
+}
+/* ---- demo data (only when no database is reachable) ---- */
+function loadDemo(){
+  const t=todayD(),d=n=>fd(addDays(t,-n));
+  D.products=[{id:'DEMO-1',sku:'DEMO-1',name:'Sample steel bottle 750ml',cost:120,price:249,gst:0,feePct:0,shipCharge:0,opening:20,added:0,reorder:5},{id:'DEMO-2',sku:'DEMO-2',name:'Sample LED bulb 9W',cost:50,price:82,gst:0,feePct:0,shipCharge:0,opening:30,added:0,reorder:8}];
+  D.orders=[{id:'d1',orderId:'PE2-100000000000000001_1',platform:'Meesho',sku:'DEMO-1',qty:1,status:'Delivered',date:d(16),deliveredDate:d(8)},{id:'d2',orderId:'PE2-100000000000000002_1',platform:'Meesho',sku:'DEMO-2',qty:2,status:'Shipped',date:d(6),shippedDate:d(4)},{id:'d3',orderId:'PE2-100000000000000003_1',platform:'Flipkart',sku:'DEMO-1',qty:1,status:'New',date:d(1)},{id:'d4',orderId:'PE2-100000000000000004_1',platform:'Meesho',sku:'DEMO-2',qty:1,status:'Returned',date:d(12)}];
+  D.payments=[{id:'dp1',date:d(1),orderId:'PE2-100000000000000001_1',amount:229,deduction:20,utr:'DEMO000111',account:'Sample Bank',alloc:[{to:'New stock',amount:100,note:''}]}];
+  D.expenses=[{id:'de1',date:d(5),category:'Ads',description:'Sample ads expense',amount:20,mode:'From Meesho payout'}];
+  D.settings={};
+}
+/* ---- events ---- */
+let armT=0;
+document.addEventListener('click',async e=>{
+  const b=e.target.closest('[data-act]');
+  if(e.target===dlg()){closeDlg();return;}
+  if(!b)return;
+  const a=b.dataset.act,id=b.dataset.id;
+  if(a==='tab'){S.tab=b.dataset.k;render();window.scrollTo(0,0);}
+  else if(a==='filter'){S.filter=b.dataset.k;S.limit=150;render();}
+  else if(a==='goto'){const [k,v]=b.dataset.to.split(':');if(k==='tab')S.tab=v;else{S.tab='orders';S.filter=v;S.month='all';}render();window.scrollTo(0,0);}
+  else if(a==='close')closeDlg();
+  else if(a==='new-order')openOrderForm({});
+  else if(a==='open-order'){recompute();openOrder(id);}
+  else if(a==='edit-order'){const o=D.orders.find(x=>x.id===id);if(o)openOrderForm(o);}
+  else if(a==='new-payment')openPaymentForm({});
+  else if(a==='edit-payment'){const p=D.payments.find(x=>x.id===id);if(p)openPaymentForm(p);}
+  else if(a==='new-expense')openExpenseForm({});
+  else if(a==='edit-expense'){const x=D.expenses.find(q=>q.id===id);if(x)openExpenseForm(x);}
+  else if(a==='new-product')openProductForm({});
+  else if(a==='edit-product'){const p=D.products.find(x=>x.id===id);if(p)openProductForm(p);}
+  else if(a==='alloc-add'){$('#allocs').insertAdjacentHTML('beforeend',allocRow({}));}
+  else if(a==='alloc-del'){b.closest('.alloc').remove();updatePayHints();}
+  else if(a==='copy-qr'){const r=C.orders.find(x=>x.o.id===id);if(r)copyText(payloadOf(r.o,r.c));}
+  else if(a==='save-qr'){const r=C.orders.find(x=>x.o.id===id);if(r)saveLabel(r);}
+  else if(a==='export')doExport(b.dataset.k);
+  else if(a==='status'){const o=D.orders.find(x=>x.id===id);if(o){try{await changeStatus(o,b.dataset.s);recompute();openOrder(id);toast('Status: '+b.dataset.s);}catch(er){}}}
+  else if(a==='del'){
+    if(!b.dataset.armed){b.dataset.armed='1';b.dataset.t=b.textContent;b.textContent='Sure? Tap again';clearTimeout(armT);armT=setTimeout(()=>{b.textContent=b.dataset.t;delete b.dataset.armed;},4000);return;}
+    try{await delDoc(b.dataset.col,id);toast('Deleted');closeDlg();}catch(er){}
+  }
+});
+document.addEventListener('change',e=>{
+  const t=e.target;
+  if(t.classList.contains('js-month')){S.month=t.value;S.limit=150;render();}
+  else if(t.id==='scanFile'){const f=t.files&&t.files[0];t.value='';if(!f)return;toast('Looking for the QR…');decodeFile(f).then(txt=>{if(txt)handleScan(txt);else toast('No QR found. Take a closer, straight-on photo or type the Order ID.');},()=>toast('Could not open the photo'));}
+  else if(t.id==='restoreFile'){const f=t.files&&t.files[0];t.value='';if(f)doRestore(f);}
+  else if(t.id==='f_status'){
+    const st=t.value,td=fd(todayD());
+    if(st==='Shipped'&&!$('#f_shipped').value)$('#f_shipped').value=td;
+    if(st==='Delivered'&&!$('#f_delivered').value)$('#f_delivered').value=td;
+    updatePreview();
+  }else if(t.closest&&t.closest('#orderForm'))updatePreview();
+});
+document.addEventListener('input',e=>{
+  const t=e.target;
+  if(t.id==='q'){S.q=t.value;S.limit=150;renderOrdersList();}
+  else if(t.closest&&t.closest('#orderForm'))updatePreview();
+  else if(t.closest&&t.closest('#payForm'))updatePayHints();
+});
+document.addEventListener('keydown',e=>{
+  if(e.target.id==='scanIn'&&e.key==='Enter'){e.preventDefault();const v=e.target.value;e.target.value='';handleScan(v);}
+});
+document.addEventListener('submit',e=>{
+  e.preventDefault();const f=e.target;
+  if(S.readOnly&&f.id!=='setForm')return;
+  if(f.id==='orderForm')submitOrder(f);
+  else if(f.id==='payForm')submitPayment(f);
+  else if(f.id==='expForm')submitExpense(f);
+  else if(f.id==='prodForm')submitProduct(f);
+  else if(f.id==='setForm'){
+    const fd2=new FormData(f),pl={},n=num(fd2.get('count'));
+    for(let i=0;i<n;i++){const nm=fd2.get('n'+i);if(nm)pl[nm]={ship:num(fd2.get('ship'+i)),deliver:num(fd2.get('deliver'+i)),pay:num(fd2.get('pay'+i))};}
+    saveDoc('settings','main',{...D.settings,platforms:pl}).then(()=>toast('Timeline saved'),()=>{});
+  }
+});
+/* ---- boot ---- */
+async function boot(){
+  renderNow();
+  const cu=window.claude&&window.claude.use?n=>window.claude.use(n).catch(()=>null):()=>Promise.resolve(null);
+  DB=await cu('db');DL=await cu('downloads');
+  const u=await cu('user');
+  try{if(u&&typeof u.can==='function'&&u.can('data.write')===false)S.readOnly=true;}catch(e){}
+  if(DB)subscribe();else{S.demo=true;loadDemo();S.ready=true;render();}
+}
+boot();
+})();
+</script>
+
+</body></html>
